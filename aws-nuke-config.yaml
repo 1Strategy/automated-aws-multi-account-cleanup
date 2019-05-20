@@ -1,0 +1,55 @@
+---
+regions:
+- "global" # This is for all global resource types e.g. IAM
+- "us-east-1"
+- "us-east-2"
+- "us-west-1"
+- "us-west-2"
+#- "us-gov-west-1"
+#- "ca-central-1"
+#- "eu-west-1"
+#- "eu-west-2"
+#- "eu-west-3"
+#- "eu-central-1"
+#- "ap-northeast-1"
+#- "ap-northeast-2"
+#- "ap-northeast-3"
+#- "ap-southeast-1"
+#- "ap-southeast-2"
+#- "ap-south-1"
+#- "sa-east-1"
+#- "cn-north-1"
+#- "cn-northwest-1"
+
+
+account-blacklist:
+- 123456780123 #prod
+
+accounts:
+  000000000000:
+    filters:
+      CloudFormationStack:
+        - "StackSetExecutionRoleStack"
+        - property: "tag:Permanent"
+          value: "True"
+      IAMGroup:
+        - property: "tag:Permanent"
+          value: "True"
+      IAMGroupPolicy:
+        - property: "tag:Permanent"
+          value: "True"
+      IAMRole:
+        - "OrganizationAccountAccessRole"
+        - "AWSCloudFormationStackSetExecutionRole"
+        - "NukeRole"
+        - property: "tag:Permanent"
+          value: "True"
+      IAMRolePolicy:
+        - property: "tag:Permanent"
+          value: "True"
+      IAMRolePolicyAttachment:
+        - "AWSCloudFormationStackSetExecutionRole -> AdministratorAccess"
+        - "OrganizationAccountAccessRole -> AdministratorAccess"
+        - "NukeRole -> AdministratorAccess"
+        - property: "tag:Permanent"
+          value: "True"
