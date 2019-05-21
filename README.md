@@ -10,6 +10,7 @@ This tool was built with a specific organizational architecture in mind. See bel
 
 
 ## Important Note about Production Readiness
+---
 By default this tool is configured to **NOT** be destructive, which follows a similar pattern to the AWS-Nuke tool's default behaviors. When deploying to Production, you need to modify the deployment code to allow AWS-Nuke to destroy resources on your behalf. See below for how and what to modify for Production:
 ```bash
 ### NukeStack.yaml (DEFAULT) ###
@@ -28,24 +29,25 @@ aws-nuke -c $line.yaml --force --no-dry-run --access-key-id $ACCESS_KEY_ID --sec
 ```
 
 ## Prerequisites
-
+---
 1. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 1. A **firm** understanding of AWS, and access to your organization's accounts
 1. A Role in each account to be cleaned that allows this CodeBuild Project to Assume permissions within the account. This Role needs to be consistently named across all affected accounts, as it's a parameter necessary for the CloudFormation template to run properly.
 
 ## Setup and Installation
-
+---
 1. Clone the repo
 ```bash
-git clone <Repo>
-cd <Repo>/
+git clone https://github.com/1Strategy/automated-aws-multi-account-cleanup.git
+cd automated-aws-multi-account-cleanup
 ```
 1. Determine the ID of the Organizational Unit that owns the grouping of accounts that you would like to cleanse with AWS-Nuke.
     - Log into your AWS Account, and access the [Organizations console](https://console.aws.amazon.com/organizations/home) to access the information regarding your organizational account structure.
     - _Note: You will need permissions to view this information_
 1. Update your config file with specific filters for your accounts
-    - _Note: it may be helpful to run aws-nuke locally a single account to ensure you have a firm grasp on resources that you would like to retain, such as roles for Administrator role assumption, **as well as resources which will be destroyed**._
-1. The tool is currently configured to run at 12:00a PST Mon-Fri. It can be easily configured with a `rate()` or `cron()` expression by editing the [NukeStack.yaml](./Nukestack.yaml) file in the `CloudWatchNukeScriptSchedule:Properties:ScheduleExpression:` section.
+    - _Note: It will be helpful to run aws-nuke locally a single account to ensure you have a firm grasp on resources that you would like to retain, such as roles for Administrator role assumption, **as well as resources which will be destroyed**._
+1. Run AWS-Nuke against one of your accounts with your updated config file to test the output.
+    - _Note: By default, this is non-destructive._
 ```bash
 # Example aws-nuke command (you will need to modify the config file, line 29, with an account number to run against) and subsequent output
 aws-nuke -c ./aws-nuke-config --profile sandbox
@@ -69,6 +71,7 @@ Scan complete: 104 total, 4 nukeable, 100 filtered.
 
 The above resources would be deleted with the supplied configuration. Provide --no-dry-run to actually destroy resources.
 ```
+1. The tool is currently configured to run at 12:00a PST Mon-Fri. It can be easily configured with a `rate()` or `cron()` expression by editing the [NukeStack.yaml](./Nukestack.yaml) file in the `CloudWatchNukeScriptSchedule:Properties:ScheduleExpression:` section.
 1. Create an S3 Bucket and upload your `aws-nuke-config.yaml` file
 ```bash
 aws s3 mb s3://some-new-unique-bucket
@@ -85,6 +88,7 @@ aws cloudformation deploy \
     BucketName=some-new-unique-bucket \
     AssumeRoleName=NukeRole
 ```
+1. Retrieve the status of your stack
 Check the status of your build once:
 ```bash
 aws cloudformation describe-stacks \
@@ -101,7 +105,7 @@ watch -n 5 -d 'aws cloudformation describe-stacks
 ```
 
 ## Disable / Removal
-
+---
 1. Use aws cloudformation cli to remove the stack and all associated resources
 ```bash
 aws cloudformation delete-stack --stack-name AccountNukeStack
