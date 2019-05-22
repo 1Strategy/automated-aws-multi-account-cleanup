@@ -10,7 +10,7 @@ This tool was built with a specific organizational architecture in mind. See bel
 
 
 ## Important Note about Production Readiness
----
+
 By default this tool is configured to **NOT** be destructive, which follows a similar pattern to the AWS-Nuke tool's default behaviors. When deploying to Production, you need to modify the deployment code to allow AWS-Nuke to destroy resources on your behalf. See below for how and what to modify for Production:
 ```bash
 ### NukeStack.yaml (DEFAULT) ###
@@ -29,13 +29,13 @@ aws-nuke -c $line.yaml --force --no-dry-run --access-key-id $ACCESS_KEY_ID --sec
 ```
 
 ## Prerequisites
----
+
 1. [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
 1. A **firm** understanding of AWS, and access to your organization's accounts
 1. A Role in each account to be cleaned that allows this CodeBuild Project to Assume permissions within the account. This Role needs to be consistently named across all affected accounts, as it's a parameter necessary for the CloudFormation template to run properly.
 
 ## Setup and Installation
----
+
 1. Clone the repo
 ```bash
 git clone https://github.com/1Strategy/automated-aws-multi-account-cleanup.git
@@ -105,12 +105,12 @@ watch -n 5 -d 'aws cloudformation describe-stacks
 ```
 
 ## Disable / Removal
----
+
 1. Use aws cloudformation cli to remove the stack and all associated resources
 ```bash
 aws cloudformation delete-stack --stack-name AccountNukeStack
 ```
 
 ## License
----
+
 Licensed under the Apache License, Version 2.0.
