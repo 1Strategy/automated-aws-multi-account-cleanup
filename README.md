@@ -37,10 +37,10 @@ aws-nuke -c $line.yaml --force --no-dry-run --access-key-id $ACCESS_KEY_ID --sec
 ## Setup and Installation
 
 1. Clone the repo
-```bash
-git clone https://github.com/1Strategy/automated-aws-multi-account-cleanup.git
-cd automated-aws-multi-account-cleanup
-```
+    ```bash
+    git clone https://github.com/1Strategy/automated-aws-multi-account-cleanup.git
+    cd automated-aws-multi-account-cleanup
+    ```
 1. Determine the ID of the Organizational Unit that owns the grouping of accounts that you would like to cleanse with AWS-Nuke.
     - Log into your AWS Account, and access the [Organizations console](https://console.aws.amazon.com/organizations/home) to access the information regarding your organizational account structure.
     - _Note: You will need permissions to view this information_
@@ -48,68 +48,68 @@ cd automated-aws-multi-account-cleanup
     - _Note: It will be helpful to run aws-nuke locally a single account to ensure you have a firm grasp on resources that you would like to retain, such as roles for Administrator role assumption, **as well as resources which will be destroyed**._
 1. Run AWS-Nuke against one of your accounts with your updated config file to test the output.
     - _Note: By default, this is non-destructive._
-```bash
-# Example aws-nuke command (you will need to modify the config file, line 29, with an account number to run against) and subsequent output
-aws-nuke -c ./aws-nuke-config --profile sandbox
+    ```bash
+    # Example aws-nuke command (you will need to modify the config file, line 29, with an account number to run against) and subsequent output
+    aws-nuke -c ./aws-nuke-config --profile sandbox
 
-Assume Role MFA token code: 000000
-aws-nuke version v2.9.0 - Wed Mar 27 15:19:23 UTC 2019 - 0df913de92ab8f81646f06bfd0eadba0f42d722c
+    Assume Role MFA token code: 000000
+    aws-nuke version v2.9.0 - Wed Mar 27 15:19:23 UTC 2019 - 0df913de92ab8f81646f06bfd0eadba0f42d722c
 
-Do you really want to nuke the account with the ID 000000000000 and the alias 'my-account-alias'?
-Do you want to continue? Enter account alias to continue.
-> my-account-alias
+    Do you really want to nuke the account with the ID 000000000000 and the alias 'my-account-alias'?
+    Do you want to continue? Enter account alias to continue.
+    > my-account-alias
 
-global - IAMRole - AWSCloudFormationStackSetExecutionRole - filtered by config
-global - IAMRole - AWSServiceRoleForOrganizations - cannot delete service roles
-global - IAMRole - AWSServiceRoleForRDS - cannot delete service roles
-global - IAMRole - AWSServiceRoleForSupport - cannot delete service roles
-global - IAMRole - AWSServiceRoleForTrustedAdvisor - cannot delete service roles
-...
-...
-...
-Scan complete: 104 total, 4 nukeable, 100 filtered.
+    global - IAMRole - AWSCloudFormationStackSetExecutionRole - filtered by config
+    global - IAMRole - AWSServiceRoleForOrganizations - cannot delete service roles
+    global - IAMRole - AWSServiceRoleForRDS - cannot delete service roles
+    global - IAMRole - AWSServiceRoleForSupport - cannot delete service roles
+    global - IAMRole - AWSServiceRoleForTrustedAdvisor - cannot delete service roles
+    ...
+    ...
+    ...
+    Scan complete: 104 total, 4 nukeable, 100 filtered.
 
-The above resources would be deleted with the supplied configuration. Provide --no-dry-run to actually destroy resources.
-```
+    The above resources would be deleted with the supplied configuration. Provide --no-dry-run to actually destroy resources.
+    ```
 1. The tool is currently configured to run at 12:00a PST Mon-Fri. It can be easily configured with a `rate()` or `cron()` expression by editing the [NukeStack.yaml](./Nukestack.yaml) file in the `CloudWatchNukeScriptSchedule:Properties:ScheduleExpression:` section.
 1. Create an S3 Bucket and upload your `aws-nuke-config.yaml` file
-```bash
-aws s3 mb s3://some-new-unique-bucket
-aws s3 cp ./aws-nuke-config.yaml s3://some-new-unique-bucket
-```
+    ```bash
+    aws s3 mb s3://some-new-unique-bucket
+    aws s3 cp ./aws-nuke-config.yaml s3://some-new-unique-bucket
+    ```
 1. Deploy to production via aws cloudformation cli
-```bash
-aws cloudformation deploy \
---profile production \
---stack-name AccountNukeStack \
---template-file NukeStack.yaml \
---parameter-overrides \
-    ParentOuId=0-abcd1234 \
-    BucketName=some-new-unique-bucket \
-    AssumeRoleName=NukeRole
-```
+    ```bash
+    aws cloudformation deploy \
+    --profile production \
+    --stack-name AccountNukeStack \
+    --template-file NukeStack.yaml \
+    --parameter-overrides \
+        ParentOuId=0-abcd1234 \
+        BucketName=some-new-unique-bucket \
+        AssumeRoleName=NukeRole
+    ```
 1. Retrieve the status of your stack
-Check the status of your build once:
-```bash
-aws cloudformation describe-stacks \
---profile production \
---stack-name AccountNukeStack \
---query "Stacks[*].StackStatus"
-```
-Or watch the status of your build over 5sec intervals:
-```bash
-watch -n 5 -d 'aws cloudformation describe-stacks
---profile production
---stack-name AccountNukeStack
---query "Stacks[*].StackStatus"'
-```
+    - Check the status of your build once:
+    ```bash
+    aws cloudformation describe-stacks \
+    --profile production \
+    --stack-name AccountNukeStack \
+    --query "Stacks[*].StackStatus"
+    ```
+    - Or watch the status of your build over 5sec intervals:
+    ```bash
+    watch -n 5 -d 'aws cloudformation describe-stacks
+    --profile production
+    --stack-name AccountNukeStack
+    --query "Stacks[*].StackStatus"'
+    ```
 
-## Disable / Removal
+## Removal
 
 1. Use aws cloudformation cli to remove the stack and all associated resources
-```bash
-aws cloudformation delete-stack --stack-name AccountNukeStack
-```
+    ```bash
+    aws cloudformation delete-stack --stack-name AccountNukeStack
+    ```
 
 ## License
 
