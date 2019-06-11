@@ -142,27 +142,27 @@ Resources:
                 - chmod +x /bin/aws-nuke
             build:
               commands:
-                - aws organizations list-accounts-for-parent --parent-id ${ParentOuId} |jq -r '.Accounts |map(.Id) |join("\n")' |tee -a accounts.txt
+                - ACCOUNT_LIST=$(aws organizations list-accounts-for-parent --parent-id ${ParentOuId} --output text | awk '{print $4}')
                 - aws s3 cp s3://${BucketName}/aws-nuke-config.yaml .
                 - |
-                  while read -r line; do
-                    echo "Assuming Role for Account $line";
-                    aws sts assume-role --role-arn arn:aws:iam::$line:role/${AssumeRoleName} --role-session-name account-$line --query "Credentials" > $line.json;
-                    cat $line.json
-                    ACCESS_KEY_ID=$(cat $line.json |jq -r .AccessKeyId);
-                    SECRET_ACCESS_KEY=$(cat $line.json |jq -r .SecretAccessKey);
-                    SESSION_TOKEN=$(cat $line.json |jq -r .SessionToken);
-                    cp aws-nuke-config.yaml $line.yaml;
-                    sed -i -e "s/000000000000/$line/g" $line.yaml;
+                  for account_id in $ACCOUNT_LIST
+                  do
+                    echo "Assuming Role for Account $account_id";
+                    aws sts assume-role --role-arn arn:aws:iam::$account_id:role/${AssumeRoleName} --role-session-name account-$account_id --query "Credentials" > $account_id.json;
+                    cat $account_id.json
+                    ACCESS_KEY_ID=$(cat $account_id.json |jq -r .AccessKeyId);
+                    SECRET_ACCESS_KEY=$(cat $account_id.json |jq -r .SecretAccessKey);
+                    SESSION_TOKEN=$(cat $account_id.json |jq -r .SessionToken);
+                    cp aws-nuke-config.yaml $account_id.yaml;
+                    sed -i -e "s/000000000000/$account_id/g" $account_id.yaml;
                     echo "Configured aws-nuke-config.yaml";
-                    echo "Running Nuke on Account $line";
+                    echo "Running Nuke on Account $account_id";
                     # TODO: Add --no-dry-run flag for Production
-                    aws-nuke -c $line.yaml --force --access-key-id $ACCESS_KEY_ID --secret-access-key $SECRET_ACCESS_KEY --session-token $SESSION_TOKEN |tee -a aws-nuke.log;
+                    aws-nuke -c $account_id.yaml --force --no-dry-run --access-key-id $ACCESS_KEY_ID --secret-access-key $SECRET_ACCESS_KEY --session-token $SESSION_TOKEN |tee -a aws-nuke.log;
                     nuke_pid=$!;
                     wait $nuke_pid;
-                  done < accounts.txt
+                  done
                 - echo "Completed Nuke Process for all accounts"
-
             post_build:
               commands:
                 - cat aws-nuke.log
