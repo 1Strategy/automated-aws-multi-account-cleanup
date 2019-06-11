@@ -100,7 +100,16 @@ Resources:
               -
                 Effect: Allow
                 Action: sts:AssumeRole
-                Resource: arn:aws:iam::*:role/NukeRole
+                Resource: !Sub arn:aws:iam::*:role/${AssumeRoleName}
+        -
+          PolicyName: NukeListOUAccounts
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              -
+                Effect: Allow
+                Action: organizations:ListAccountsForParent
+                Resource: "*"
 
   NukeScriptProject:
     Type: AWS::CodeBuild::Project
